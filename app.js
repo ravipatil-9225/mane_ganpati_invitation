@@ -12,7 +12,7 @@
     invitationUrl: 'https://mane-ganpati-invitation.vercel.app/',
     showWhatsApp: true,
     showPetals: true,
-    hostedMusicUrl: 'https://mane-ganpati-invitation.vercel.appi-invitation.vercel.app/music.mp3',
+    hostedMusicUrl: 'https://mane-ganpati-invitation.vercel.app/music.mp3',
     shareMessage: 'Ganpati Bappa Morya! You and your family are invited for darshan ' +
       'and aarti at our home on 14 to 17 September 2026. Invitation: '
   };
