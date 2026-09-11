@@ -156,11 +156,7 @@
   function shareOnWhatsApp() {
     var text = CONFIG.shareMessage + CONFIG.invitationUrl;
     var shareUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(text);
-    try {
-      window.open(shareUrl, '_blank', 'noopener,noreferrer');
-    } catch (e) {
-      window.location.href = shareUrl;
-    }
+    window.location.href = shareUrl;
   }
 
   /* --- Boot ----------------------------------------------- */
