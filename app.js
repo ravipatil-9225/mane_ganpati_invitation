@@ -12,8 +12,14 @@
     invitationUrl: 'https://mane-ganpati-invitation.vercel.app/',
     showWhatsApp: true,
     showPetals: true,
+    hostedMusicUrl: 'https://mane-ganpati-invitation.vercel.app/music.mp3',
     shareMessage: 'Ganpati Bappa Morya! You and your family are invited for darshan ' +
       'and aarti at our home on 14 to 17 September 2026. Invitation: '
+  };
+
+  var musicState = {
+    playing: false,
+    audio: null
   };
 
   /* --- Element lookup ------------------------------------- */
@@ -21,7 +27,7 @@
   ['heroVideo', 'heroText', 'sec2', 'sec3', 'garlandL', 'garlandR',
     'bell1', 'bell2', 'bell3', 'bell4', 'diyaL', 'diyaR',
     'invite', 'card', 'cardRegion', 'mouse', 'bubble',
-    'petals', 'shareBtn', 'mapBtn'].forEach(function (id) {
+    'petals', 'shareBtn', 'mapBtn', 'musicToggle', 'invitationMusic'].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
 
@@ -148,6 +154,48 @@
     kickVideo();
   }
 
+  /* --- Music --------------------------------------------- */
+  function startMusic() {
+    var audio = el.invitationMusic || new Audio(CONFIG.hostedMusicUrl);
+    if (!musicState.audio) {
+      musicState.audio = audio;
+      musicState.audio.loop = true;
+      musicState.audio.volume = 0.35;
+      musicState.audio.preload = 'auto';
+      musicState.audio.src = CONFIG.hostedMusicUrl;
+    }
+
+    musicState.playing = true;
+    if (el.musicToggle) {
+      el.musicToggle.classList.add('is-playing');
+      el.musicToggle.setAttribute('aria-pressed', 'true');
+      el.musicToggle.setAttribute('aria-label', 'Pause invitation music');
+      el.musicToggle.querySelector('.music-toggle__text').textContent = 'Pause';
+    }
+
+    if (musicState.audio.paused) {
+      var playPromise = musicState.audio.play();
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(function () { });
+      }
+    }
+  }
+
+  function stopMusic() {
+    musicState.playing = false;
+    if (musicState.audio) {
+      musicState.audio.pause();
+      musicState.audio.currentTime = 0;
+    }
+
+    if (el.musicToggle) {
+      el.musicToggle.classList.remove('is-playing');
+      el.musicToggle.setAttribute('aria-pressed', 'false');
+      el.musicToggle.setAttribute('aria-label', 'Play invitation music');
+      el.musicToggle.querySelector('.music-toggle__text').textContent = 'Music';
+    }
+  }
+
   /* --- Interactions --------------------------------------- */
   function openMap() {
     window.open(CONFIG.mapsUrl, '_blank', 'noopener');
@@ -159,6 +207,14 @@
     window.location.href = shareUrl;
   }
 
+  function toggleMusic() {
+    if (musicState.playing) {
+      stopMusic();
+    } else {
+      startMusic();
+    }
+  }
+
   /* --- Boot ----------------------------------------------- */
   function start() {
     if (el.petals) el.petals.hidden = !CONFIG.showPetals;
@@ -167,6 +223,12 @@
       el.shareBtn.addEventListener('click', shareOnWhatsApp);
     }
     if (el.mapBtn) el.mapBtn.addEventListener('click', openMap);
+    if (el.musicToggle) el.musicToggle.addEventListener('click', toggleMusic);
+
+    // Auto-start the invitation melody when the page opens.
+    // Browsers may still block audio in strict autoplay contexts,
+    // but this keeps the experience aligned with the invited flow.
+    startMusic();
 
     document.addEventListener('scroll', tick, { passive: true, capture: true });
     window.addEventListener('resize', tick);
