@@ -163,6 +163,7 @@
       musicState.audio.volume = 0.35;
       musicState.audio.preload = 'auto';
       musicState.audio.src = CONFIG.hostedMusicUrl;
+      musicState.audio.muted = true;
     }
 
     musicState.playing = true;
@@ -186,6 +187,7 @@
     if (musicState.audio) {
       musicState.audio.pause();
       musicState.audio.currentTime = 0;
+      musicState.audio.muted = true;
     }
 
     if (el.musicToggle) {
@@ -193,6 +195,19 @@
       el.musicToggle.setAttribute('aria-pressed', 'false');
       el.musicToggle.setAttribute('aria-label', 'Play invitation music');
       el.musicToggle.querySelector('.music-toggle__text').textContent = 'Music';
+    }
+  }
+
+  function toggleMusic() {
+    if (musicState.playing) {
+      stopMusic();
+    } else {
+      if (musicState.audio) {
+        musicState.audio.muted = false;
+        musicState.audio.volume = 0.35;
+        musicState.audio.currentTime = 0;
+      }
+      startMusic();
     }
   }
 
