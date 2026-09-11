@@ -12,7 +12,7 @@
     showWhatsApp: true,
     showPetals: true,
     shareMessage: 'Ganpati Bappa Morya! You and your family are invited for darshan ' +
-      'and aarti at our home on 14 & 15 September 2026. Directions: '
+      'and aarti at our home on 14 to 17 September 2026. Directions: '
   };
 
   /* --- Element lookup ------------------------------------- */
