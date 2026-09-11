@@ -9,10 +9,11 @@
   /* --- Configuration -------------------------------------- */
   var CONFIG = {
     mapsUrl: 'https://maps.app.goo.gl/WQmqvmD5ZQwUZiUZ6',
+    invitationUrl: 'https://mane-ganpati-invitation.vercel.app/',
     showWhatsApp: true,
     showPetals: true,
     shareMessage: 'Ganpati Bappa Morya! You and your family are invited for darshan ' +
-      'and aarti at our home on 14 to 17 September 2026. Directions: '
+      'and aarti at our home on 14 to 17 September 2026. Invitation: '
   };
 
   /* --- Element lookup ------------------------------------- */
@@ -153,7 +154,7 @@
   }
 
   function shareOnWhatsApp() {
-    var text = CONFIG.shareMessage + CONFIG.mapsUrl;
+    var text = CONFIG.shareMessage + CONFIG.invitationUrl;
     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
   }
 
