@@ -12,14 +12,15 @@
     invitationUrl: 'https://mane-ganpati-invitation.vercel.app/',
     showWhatsApp: true,
     showPetals: true,
-    hostedMusicUrl: 'https://mane-ganpati-invitation.vercel.app/music.mp3',
+    musicUrl: 'music.mp3',
     shareMessage: 'Ganpati Bappa Morya! You and your family are invited for darshan ' +
       'and aarti at our home on 14 to 17 September 2026. Invitation: '
   };
 
   var musicState = {
     playing: false,
-    audio: null
+    audio: null,
+    userPaused: false
   };
 
   /* --- Element lookup ------------------------------------- */
@@ -155,60 +156,92 @@
   }
 
   /* --- Music --------------------------------------------- */
-  function startMusic() {
-    var audio = el.invitationMusic || new Audio(CONFIG.hostedMusicUrl);
+  function getAudio() {
     if (!musicState.audio) {
+      var audio = el.invitationMusic || new Audio(CONFIG.musicUrl);
+      audio.loop = true;
+      audio.volume = 0.5;
+      audio.preload = 'auto';
+      if (!audio.src || audio.getAttribute('src') !== CONFIG.musicUrl) {
+        audio.src = CONFIG.musicUrl;
+      }
       musicState.audio = audio;
-      musicState.audio.loop = true;
-      musicState.audio.volume = 0.35;
-      musicState.audio.preload = 'auto';
-      musicState.audio.src = CONFIG.hostedMusicUrl;
-      musicState.audio.muted = true;
     }
+    return musicState.audio;
+  }
 
-    musicState.playing = true;
-    if (el.musicToggle) {
+  function updateMusicUI(isPlaying) {
+    if (!el.musicToggle) return;
+    if (isPlaying) {
       el.musicToggle.classList.add('is-playing');
       el.musicToggle.setAttribute('aria-pressed', 'true');
       el.musicToggle.setAttribute('aria-label', 'Pause invitation music');
-      el.musicToggle.querySelector('.music-toggle__text').textContent = 'Pause';
-    }
-
-    if (musicState.audio.paused) {
-      var playPromise = musicState.audio.play();
-      if (playPromise && playPromise.catch) {
-        playPromise.catch(function () { });
-      }
-    }
-  }
-
-  function stopMusic() {
-    musicState.playing = false;
-    if (musicState.audio) {
-      musicState.audio.pause();
-      musicState.audio.currentTime = 0;
-      musicState.audio.muted = true;
-    }
-
-    if (el.musicToggle) {
+      var textEl = el.musicToggle.querySelector('.music-toggle__text');
+      if (textEl) textEl.textContent = 'Pause';
+    } else {
       el.musicToggle.classList.remove('is-playing');
       el.musicToggle.setAttribute('aria-pressed', 'false');
       el.musicToggle.setAttribute('aria-label', 'Play invitation music');
-      el.musicToggle.querySelector('.music-toggle__text').textContent = 'Music';
+      var textEl = el.musicToggle.querySelector('.music-toggle__text');
+      if (textEl) textEl.textContent = 'Music';
     }
+  }
+
+  function startMusic() {
+    var audio = getAudio();
+    audio.muted = false;
+    audio.volume = 0.5;
+
+    var playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.then(function () {
+        musicState.playing = true;
+        musicState.userPaused = false;
+        updateMusicUI(true);
+      }).catch(function () {
+        musicState.playing = false;
+        updateMusicUI(false);
+      });
+    }
+  }
+
+  function pauseMusic() {
+    musicState.userPaused = true;
+    musicState.playing = false;
+    var audio = getAudio();
+    audio.pause();
+    updateMusicUI(false);
   }
 
   function toggleMusic() {
     if (musicState.playing) {
-      stopMusic();
+      pauseMusic();
     } else {
-      if (musicState.audio) {
-        musicState.audio.muted = false;
-        musicState.audio.volume = 0.35;
-        musicState.audio.currentTime = 0;
-      }
+      musicState.userPaused = false;
       startMusic();
     }
+  }
+
+  function setupAutoPlayOnInteraction() {
+    var events = ['click', 'touchstart', 'touchend', 'scroll', 'wheel', 'keydown', 'pointerdown'];
+    function onFirstInteraction() {
+      if (!musicState.playing && !musicState.userPaused) {
+        startMusic();
+      }
+      cleanup();
+    }
+
+    function cleanup() {
+      events.forEach(function (e) {
+        window.removeEventListener(e, onFirstInteraction, { capture: true });
+        document.removeEventListener(e, onFirstInteraction, { capture: true });
+      });
+    }
+
+    events.forEach(function (e) {
+      window.addEventListener(e, onFirstInteraction, { capture: true, passive: true });
+      document.addEventListener(e, onFirstInteraction, { capture: true, passive: true });
+    });
   }
 
   /* --- Interactions --------------------------------------- */
@@ -222,14 +255,6 @@
     window.location.href = shareUrl;
   }
 
-  function toggleMusic() {
-    if (musicState.playing) {
-      stopMusic();
-    } else {
-      startMusic();
-    }
-  }
-
   /* --- Boot ----------------------------------------------- */
   function start() {
     if (el.petals) el.petals.hidden = !CONFIG.showPetals;
@@ -240,10 +265,9 @@
     if (el.mapBtn) el.mapBtn.addEventListener('click', openMap);
     if (el.musicToggle) el.musicToggle.addEventListener('click', toggleMusic);
 
-    // Auto-start the invitation melody when the page opens.
-    // Browsers may still block audio in strict autoplay contexts,
-    // but this keeps the experience aligned with the invited flow.
+    // Auto-start invitation music when page opens
     startMusic();
+    setupAutoPlayOnInteraction();
 
     document.addEventListener('scroll', tick, { passive: true, capture: true });
     window.addEventListener('resize', tick);

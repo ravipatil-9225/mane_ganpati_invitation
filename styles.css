@@ -64,10 +64,21 @@ p, h1, h2 { margin: 0; }
 .music-toggle__icon {
   font-size: 18px;
   line-height: 1;
+  display: inline-block;
+  transition: transform 260ms ease;
+}
+
+.music-toggle.is-playing .music-toggle__icon {
+  animation: musicPulse 1.2s ease-in-out infinite alternate;
 }
 
 .music-toggle__text {
   white-space: nowrap;
+}
+
+@keyframes musicPulse {
+  0% { transform: scale(1) rotate(-6deg); }
+  100% { transform: scale(1.2) rotate(6deg); }
 }
 
 /* --- Keyframes -------------------------------------------- */
